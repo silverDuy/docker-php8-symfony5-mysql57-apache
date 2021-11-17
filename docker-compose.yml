@@ -1,7 +1,7 @@
 version: '3.9'
 
 networks:
-  dhl_net:
+  app_net:
 
 services:
   server:
@@ -15,14 +15,14 @@ services:
     environment:
       - 'DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASS}@db_server:3306/${MYSQL_DB}?serverVersion=10.5'
     volumes:
-      - ./app:/var/www/html
+      - ${APP_PATH}:/var/www/html
       - ./docker/server/apache/sites-enabled:/etc/apache2/sites-enabled
       - ./docker/server/php/php.ini:/usr/local/etc/php/conf.d/extra-php-config.ini
     depends_on:
       db_server:
         condition: service_healthy
     networks:
-      - dhl_net
+      - app_net
 
   db_server:
     image: mysql:5.7
@@ -43,7 +43,7 @@ services:
       interval: 5s
       retries: 5
     networks:
-      - dhl_net
+      - app_net
 
   db_admin:
     image: phpmyadmin/phpmyadmin:5
@@ -57,8 +57,10 @@ services:
         condition: service_healthy
     volumes:
       - db_admin_data:/var/www/html
+    profiles:
+      - debug
     networks:
-      - dhl_net
+      - app_net
 
 volumes:
   db_data:
